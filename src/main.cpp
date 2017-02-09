@@ -2,6 +2,8 @@
 #include <opencv2/opencv.hpp>
 #include "detector/fpdw_detector.h"
 #include "sort.h"
+#include "camera.h"
+
 using namespace cv;
 
 int main(int argc, char** argv )
@@ -14,60 +16,115 @@ int main(int argc, char** argv )
     }
 
     string filename = argv[1];
-    VideoCapture capture(filename);
 
 
-    if( !capture.isOpened() )
-        throw "Error when reading steam_avi";
+    fpdw::detector::FPDWDetector *ptr_detector;
+    ptr_detector = new fpdw::detector::FPDWDetector(argv[2], 15);
 
-    namedWindow("Display Image", WINDOW_AUTOSIZE );
-
-    Mat image;
-
-    fpdw::detector::FPDWDetector detector(argv[2], 20);
-
-    sort_tracker tracker;
+    std::vector<Camera> camNetwork;
 
 
 
-    for( ; ; )
+        std::string videofile0    =  "/home/filipeferreira/workspace/ppl_tracker/Files/Arc/2-actor/distinct-colors/arc_2p_dc_co_C10.mp4";
+    //std::string videofile0    =  "/home/filipeferreira/workspace/ppl_tracker/Files/Arc/5-actor/equal-colors/arc_mp_ec_C10.mp4";
+    std::string maskfile0     =  "/home/filipeferreira/workspace/ppl_tracker/calibration/0.bmp";
+    std::string calibfile0    =  "/home/filipeferreira/workspace/ppl_tracker/calibration/0.txt";
+
+
+    Camera camera0;
+    camera0.init(videofile0,maskfile0,calibfile0,ptr_detector,cv::Point2f(8,4.25));
+    camNetwork.push_back(camera0);
+
+
+     std::string videofile1    =  "/home/filipeferreira/workspace/ppl_tracker/Files/Arc/2-actor/distinct-colors/arc_2p_dc_co_C11.mp4";
+    //std::string videofile1    =  "/home/filipeferreira/workspace/ppl_tracker/Files/Arc/5-actor/equal-colors/arc_mp_ec_C11.mp4";
+    std::string maskfile1     =  "/home/filipeferreira/workspace/ppl_tracker/calibration/1.bmp";
+    std::string calibfile1    =  "/home/filipeferreira/workspace/ppl_tracker/calibration/1.txt";
+
+    Camera camera1;
+    camera1.init(videofile1,maskfile1,calibfile1,ptr_detector,cv::Point2f(8,0));
+    camNetwork.push_back(camera1);
+
+    std::string videofile2    =  "/home/filipeferreira/workspace/ppl_tracker/Files/Arc/2-actor/distinct-colors/arc_2p_dc_co_C12.mp4";
+    //std::string videofile2    =  "/home/filipeferreira/workspace/ppl_tracker/Files/Arc/5-actor/equal-colors/arc_mp_ec_C12.mp4";
+    std::string maskfile2     =  "/home/filipeferreira/workspace/ppl_tracker/calibration/2.bmp";
+    std::string calibfile2    =  "/home/filipeferreira/workspace/ppl_tracker/calibration/2.txt";
+
+    Camera camera2;
+    camera2.init(videofile2,maskfile2,calibfile2,ptr_detector,cv::Point2f(0,0));
+    camNetwork.push_back(camera2);
+
+    std::string videofile3    =  "/home/filipeferreira/workspace/ppl_tracker/Files/Arc/2-actor/distinct-colors/arc_2p_dc_co_C13.mp4";
+    //std::string videofile3    =  "/home/filipeferreira/workspace/ppl_tracker/Files/Arc/5-actor/equal-colors/arc_mp_ec_C13.mp4";
+    std::string maskfile3     =  "/home/filipeferreira/workspace/ppl_tracker/calibration/3.bmp";
+    std::string calibfile3    =  "/home/filipeferreira/workspace/ppl_tracker/calibration/3.txt";
+
+    Camera camera3;
+    camera3.init(videofile3,maskfile3,calibfile3,ptr_detector,cv::Point2f(0,4.25));
+    camNetwork.push_back(camera3);
+
+
+
+    std::vector<entry_conditions> entry;
+    std::vector<entry_conditions> leave;
+
+    entry_conditions c1;
+    c1.cam_id = 1;
+    c1.point  =  cv::Point2f (4,4.25);
+    c1.dist   = 0.9;
+
+    entry_conditions c2;
+    c2.cam_id =  2;
+    c2.point  =  cv::Point2f (1,3.25);
+    c2.dist   =  0.5;
+
+    entry.push_back(c1);
+    entry.push_back(c2);
+
+    leave.push_back(c2);
+    leave.push_back(c1);
+
+    sort_tracker tracker(entry,leave);
+
+
+
+    bool control = true;
+
+    while(control)
     {
-        capture >> image;
+        auto t0 = cv::getTickCount();
+        std::vector<std::vector<detection>> net_detections;
 
-        if(image.empty())
-            break;
-
-        resize(image, image,  Size(), 0.75, 0.75, CV_INTER_AREA);
-        detector.process(image);
-        std::vector<cv::Rect_<float> >detections; //our detections to feed the tracker
-        std::vector<cv::Rect> rect = detector.getBBoxes(); //result of detection module
-        std::vector<cv::Rect_<float> >tracklets; //our active tracklets
-
-        for(const auto &i : rect)
+        for(auto &cam : camNetwork)
         {
-            cv::rectangle(image, i, cv::Scalar(255, 0, 0), 1);
+            control = cam.process();
 
-            detections.push_back(cv::Rect_<float>(i.x,i.y,i.width,i.height));
 
+            net_detections.push_back(cam.get_detections());
         }
 
 
-        tracklets = tracker.update(detections);
+        std::cout << " GOT: " << net_detections.size() << std::endl;
+        tracker.update(net_detections);
 
 
-        //draw tracklets
-        for(const auto t :tracklets)
-        {
-            cv::rectangle(image, t, cv::Scalar(2, 0, 250), 5);
+        cv::Mat result = tracker.draw_state();
 
 
+        auto t1 = cv::getTickCount();
+        auto time = (t1-t0)/cv::getTickFrequency();
 
-        }
+        std::cout << " Time: " << time*1000 << " ms " << std::endl;
 
-        imshow("Display Image", image);
+        cv::imshow("result",result);
+        cv::waitKey(1);
 
-        waitKey(1);
     }
+
+
+
+
+
 
     return 0;
 }

@@ -7,6 +7,7 @@ import pickle
 fileDir = os.path.dirname(os.path.realpath(__file__))
 fileDir = os.path.join(fileDir,'..')
 videoDir = os.path.join(fileDir,'Files')
+mapFile  = os.path.join(videoDir,'map.png')
 videoDir = os.path.join(videoDir,'Arc')
 videoDir = os.path.join(videoDir,'5-actor')
 videoDir = os.path.join(videoDir,'equal-colors')
@@ -16,6 +17,7 @@ cam2 = os.path.join(videoDir,'arc_mp_ec_C12.mp4')
 cam3 = os.path.join(videoDir,'arc_mp_ec_C13.mp4')
 cam = os.path.join(videoDir,'arc_mp_ec_C1')
 calibfile = os.path.join(fileDir,'calibration')
+
 
 
 
@@ -29,6 +31,13 @@ def callback_img(event,x,y,flags,param):
 		print img_points
 		draw()
 
+def callback_map(event,x,y,flags,param):
+	global map_points
+	if flags == cv2.EVENT_FLAG_LBUTTON:
+		map_points[0].append((x,y))
+		
+		print map_points
+		draw()
 
 def process_polygon(img,points):
 	maskImage=np.zeros_like(img)
@@ -43,10 +52,13 @@ def draw():
 	#draw points
 	for i in (np.arange(1,len(img_points[0]))):
 		cv2.line(img_show,img_points[0][i],img_points[0][i-1],(255,255,0),1)
+		
+	for i in (np.arange(1,len(map_points[0]))):
+		cv2.line(map_show,map_points[0][i],map_points[0][i-1],(255,255,0),1)
 	
 
 ##################################################### RUN SECTION ######################################
-
+#~ 
 #~ for i in (np.arange(0,4)):
 	#~ videocap = cv2.VideoCapture(cam+str(i)+'.mp4')
 	#~ ret,img_ori = videocap.read()
@@ -120,3 +132,40 @@ print M
 np.savetxt(os.path.join(calibfile,'3.txt'),M,delimiter=',')
 
 
+
+#~ img_points = [[]]
+#~ map_points = [[]]
+#~ 
+#~ map_img = cv2.imread(mapFile,);
+#~ map_show = map_img.copy()
+#~ 
+#~ videocap = cv2.VideoCapture(cam+str(0)+'.mp4')
+#~ ret,img_ori = videocap.read()
+#~ img_show = img_ori.copy()
+#~ img_ori = cv2.cvtColor(img_ori,cv2.COLOR_BGR2GRAY) 
+#~ 
+#~ cv2.namedWindow('image')
+#~ cv2.namedWindow('map')
+#~ cv2.setMouseCallback('image',callback_img)
+#~ cv2.setMouseCallback('map',callback_map)
+#~ while(len(img_points[0])<4 or len(map_points[0])<4):
+	  #~ 
+		#~ cv2.imshow('image',img_show)
+		#~ cv2.imshow('map',map_show)
+	   #~ 
+		#~ k = cv2.waitKey(10) & 0xFF
+		#~ 
+#~ 
+#~ img_points = np.array([img_points[0][:4]]).astype(np.float32)
+#~ map_points = np.array([map_points[0][:4]]).astype(np.float32)
+#~ 
+#~ print img_points
+#~ print map_points
+#~ 
+#~ M = cv2.getPerspectiveTransform(img_points,map_points)
+	#~ 
+#~ dst = cv2.warpPerspective(img_show,M,(map_img.shape[1],map_img.shape[0]))
+#~ alpha = 0.5
+#~ cv2.addWeighted(map_show, alpha, dst, 1 - alpha,0, dst)
+#~ cv2.imshow('dst',dst)
+#~ k = cv2.waitKey(-1) & 0xFF

@@ -4,25 +4,42 @@
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include <iostream>
+#include <detection.h>
 using namespace std;
+
+struct Result
+{
+    int id;
+    cv::Point2f world_position;
+    float uncertainty;
+
+    int active_camera;
+
+    std::vector<cv::Point2f> history;
+
+};
 
 class Tracklet
 {
 public:
     Tracklet();
-    Tracklet(cv::Rect_<float> detection);
+    Tracklet( detection);
     ~Tracklet();
 
-    //main functions of individual tracklets
-    void update(cv::Rect_<float> detection);
-    cv::Rect_<float> predict();
+    //main functions for individual tracklets
+
+    void update();
+    void predict();
 
     //retrieve functions:
-    cv::Rect_<float> get_state();
+    cv::Point2f get_state();
+    Result get_result();
 
-    //uitlity function(move to private?)
-    cv::Rect_<float> convert_x_to_bbox(float cx, float cy, float area, float ratio);
+    //turn tracklet active:
+    void set_active();
 
+    std::vector<detection> set_detections;
+    detection           virtual_detection;
 
 
     //control variables:
@@ -31,6 +48,12 @@ public:
     int detections_streak;
     int age;
     int id;
+    int active_id;
+    int active_camera;
+    float uncertainty;
+    cv::Mat hist;
+
+    bool active;
 
 private:
 
@@ -38,7 +61,19 @@ private:
 
     cv::Mat detectionMat;
 
-     static int counter;
+    void fuse_detections();
+    void exclude_outliers();
+
+    cv::Point2f world_position;
+
+    std::vector<cv::Point2f> history;
+
+
+
+
+
+    static int counter;
+    static int active_counter;
 
 
 };

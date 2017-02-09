@@ -19,36 +19,72 @@ struct assignment
     int detection_id;
 };
 
+struct entry_conditions
+{
+    cv::Point2f point;
+    int cam_id ;
+    float dist;
+};
+
 class sort_tracker
 {
 public:
-    sort_tracker();
+    sort_tracker( std::vector<entry_conditions>  e, std::vector<entry_conditions>  l) ;
 
     //method to assign every detection to a tracklet (or false negative)
-    void data_association(std::vector<cv::Rect_<float> > detections,  std::vector<Tracklet>& tracklets,float iou_thresh);
+    void data_association(std::vector<detection>detections,  std::vector<Tracklet>& tracklets);
 
     //update procedure
-    std::vector<cv::Rect_<float> > update(std::vector<cv::Rect_<float> > detections);
+    std::vector<Result> update(std::vector<std::vector<detection>> detections);
 
+
+    //draw function
+    cv::Mat draw_state();
+    cv::Mat draw_state(std::vector<detection>detections);
 
     //parameters
     int max_age;
     int min_detections;
+    float min_cost;
+    float distance_to_entry;
+    float distance_to_leave;
+    float distance_to_begin;
 
     int frame_count;
 
     //our vector of individual tracklets
     std::vector<Tracklet> tracklets;
 
+    std::vector<Result> active_tracklets;
+
 
 
 
 private:
 
+    std::vector<detection> missed_detections;
+
 
 
     //calculate intersection over union of 2 bboxes
-    float iou(cv::Rect_<float> bb1, cv::Rect_<float> bb2);
+    float cost(detection d, Tracklet t);
+
+
+   std::vector<entry_conditions> entry_points;
+   std::vector<entry_conditions> leave_points;
+
+    bool entry(detection d);
+    bool leave(Tracklet t);
+
+    bool check_if_duplicated(cv::Point2f p);
+
+    float score_appearance(cv::Mat hist1,cv::Mat hist2);
+
+
+
+    cv::Mat room;
+
+
 
 
 
