@@ -28,8 +28,8 @@ Tracklet::Tracklet(detection detection_)
     cv::setIdentity(kalman.processNoiseCov, cv::Scalar::all(1e-1));
     cv::setIdentity(kalman.measurementNoiseCov, cv::Scalar::all(1e0));
     cv::setIdentity(kalman.errorCovPost, cv::Scalar::all(0.5));
-    //kalman.transitionMatrix = *(cv::Mat_<float>(4, 4)<< 1,0,1,0,   0,1,0,1,  0,0,1,0,  0,0,0,1);
-    kalman.transitionMatrix = *(cv::Mat_<float>(4, 4)<< 1,0,0,0,   0,1,0,0,  0,0,1,0,  0,0,0,1);
+
+    kalman.transitionMatrix = *(cv::Mat_<float>(4, 4)<< 1,0,0,0,   0,1,0,0,  0,0,1,0,  0,0,0,1); //simplest model. Velocity is not being used because of noisy environment
 
 
 
@@ -58,35 +58,35 @@ void Tracklet::update()
 {
 
     if(set_detections.size()>0)
-    {
-        std::cout << " our set of detections: " << std::endl;
-        for(auto & d : set_detections)
         {
-            std::cout << " Cam_id" << d.cam_id << " point " << d.world_point << std::endl;
+            std::cout << " our set of detections: " << std::endl;
+            for(auto & d : set_detections)
+                {
+                    std::cout << " Cam_id" << d.cam_id << " point " << d.world_point << std::endl;
+                }
+
+
+
+
+            //aggregate detections to virtual detections:
+            fuse_detections();
+
+            //initial state of the kalman filter will be our initial detection
+            detectionMat.at<float>(0) = virtual_detection.world_point.x;
+            detectionMat.at<float>(1) = virtual_detection.world_point.y; //center point
+
+
+
+            //update kalman filter state with observation
+            kalman.correct(detectionMat);
+
+            //update control variables
+            occluded_time = 0;
+            detections++;
+            detections_streak++;
+
+
         }
-
-
-
-
-        //aggregate detections to virtual detections:
-        fuse_detections();
-
-        //initial state of the kalman filter will be our initial detection
-        detectionMat.at<float>(0) = virtual_detection.world_point.x;
-        detectionMat.at<float>(1) = virtual_detection.world_point.y; //center point
-
-
-
-        //update kalman filter state with observation
-        kalman.correct(detectionMat);
-
-        //update control variables
-        occluded_time = 0;
-        detections++;
-        detections_streak++;
-
-
-    }
 
 }
 
@@ -146,15 +146,21 @@ void Tracklet::set_active()
     active = true;
 }
 
+void Tracklet::reset_counter()
+{
+    counter = 0;
+    active_counter = 0;
+}
+
 void Tracklet::fuse_detections()
 {
 
 
     if(set_detections.size()>3) //exclude the outsider
-    {
+        {
 
-        exclude_outliers();
-    }
+            exclude_outliers();
+        }
 
     cv::Point2f cumulative(0,0);
     float sum=0;
@@ -162,11 +168,11 @@ void Tracklet::fuse_detections()
 
     //wheighted average of detections taking in account distance to camera (confidence)
     for( auto &d : set_detections)
-    {
-        float dist = (float)cv::norm(d.relative_point);
-        cumulative = cumulative + d.world_point * (1/dist)*(1/dist);
-        sum+=(1/dist)*(1/dist);
-    }
+        {
+            float dist = (float)cv::norm(d.relative_point);
+            cumulative = cumulative + d.world_point * (1/dist)*(1/dist);
+            sum+=(1/dist)*(1/dist);
+        }
 
     cv::Point2f result = cumulative * (1 / sum);
 
@@ -184,35 +190,35 @@ void Tracklet::exclude_outliers()
 
 
     for(int i = 0 ; i<set_detections.size() ; i++)
-    {
-        diffs.clear();
-
-        for(int j = 0; j < set_detections.size();j++)
         {
-            if(i!=j)
-            {
-                diffs.push_back((float)cv::norm(set_detections[i].world_point-set_detections[j].world_point));
-            }
+            diffs.clear();
+
+            for(int j = 0; j < set_detections.size(); j++)
+                {
+                    if(i!=j)
+                        {
+                            diffs.push_back((float)cv::norm(set_detections[i].world_point-set_detections[j].world_point));
+                        }
+
+                }
+            //calculate mean of distances to other points
+            double sum = std::accumulate(diffs.begin(), diffs.end(), 0.0);
+            mean_diffs.push_back((float)(sum / diffs.size()));
 
         }
-        //calculate mean of distances to other points
-        double sum = std::accumulate(diffs.begin(), diffs.end(), 0.0);
-        mean_diffs.push_back((float)(sum / diffs.size()));
-
-    }
 
     float mean = (float) std::accumulate(mean_diffs.begin(), mean_diffs.end(), 0.0)/(float)mean_diffs.size();
     mean*=1.3; //our limit to delete
 
     int k = -1;
-    for(int i = 0 ; i < mean_diffs.size();i++)
-    {
-        if(mean_diffs[i]>mean)
+    for(int i = 0 ; i < mean_diffs.size(); i++)
         {
-            k = i;
-            mean = mean_diffs[i];
+            if(mean_diffs[i]>mean)
+                {
+                    k = i;
+                    mean = mean_diffs[i];
+                }
         }
-    }
 
     if(k>-1)
         set_detections.erase(set_detections.begin()+k);

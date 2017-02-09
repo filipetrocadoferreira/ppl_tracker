@@ -58,26 +58,26 @@ def draw():
 	
 
 ##################################################### RUN SECTION ######################################
-#~ 
-#~ for i in (np.arange(0,4)):
-	#~ videocap = cv2.VideoCapture(cam+str(i)+'.mp4')
-	#~ ret,img_ori = videocap.read()
-	#~ img_show = img_ori.copy()
-	#~ img_ori = cv2.cvtColor(img_ori,cv2.COLOR_BGR2GRAY) 
-#~ 
-#~ 
-	#~ cv2.namedWindow('image')
-	#~ cv2.setMouseCallback('image',callback_img)
-#~ 
-	#~ while(1):
-		#~ cv2.imshow('image',img_show)
-		#~ k = cv2.waitKey(10) & 0xFF
-		#~ if k == ord('f'): #we're good with the polygon
-			#~ mask=process_polygon(img_ori,img_points)
-			#~ cv2.imwrite(os.path.join(calibfile,str(i)+'.bmp'),mask)
-			#~ img_points = [[]]
-			#~ break
-			
+
+for i in (np.arange(0,4)):
+	videocap = cv2.VideoCapture(cam+str(i)+'.mp4')
+	ret,img_ori = videocap.read()
+	img_show = img_ori.copy()
+	img_ori = cv2.cvtColor(img_ori,cv2.COLOR_BGR2GRAY) 
+
+
+	cv2.namedWindow('image')
+	cv2.setMouseCallback('image',callback_img)
+
+	while(1):
+		cv2.imshow('image',img_show)
+		k = cv2.waitKey(10) & 0xFF
+		if k == ord('f'): #we're good with the polygon
+			mask=process_polygon(img_ori,img_points)
+			cv2.imwrite(os.path.join(calibfile,str(i)+'.bmp'),mask)
+			img_points = [[]]
+			break
+			#~ 
 
 ##for cam0:
 
@@ -133,39 +133,3 @@ np.savetxt(os.path.join(calibfile,'3.txt'),M,delimiter=',')
 
 
 
-#~ img_points = [[]]
-#~ map_points = [[]]
-#~ 
-#~ map_img = cv2.imread(mapFile,);
-#~ map_show = map_img.copy()
-#~ 
-#~ videocap = cv2.VideoCapture(cam+str(0)+'.mp4')
-#~ ret,img_ori = videocap.read()
-#~ img_show = img_ori.copy()
-#~ img_ori = cv2.cvtColor(img_ori,cv2.COLOR_BGR2GRAY) 
-#~ 
-#~ cv2.namedWindow('image')
-#~ cv2.namedWindow('map')
-#~ cv2.setMouseCallback('image',callback_img)
-#~ cv2.setMouseCallback('map',callback_map)
-#~ while(len(img_points[0])<4 or len(map_points[0])<4):
-	  #~ 
-		#~ cv2.imshow('image',img_show)
-		#~ cv2.imshow('map',map_show)
-	   #~ 
-		#~ k = cv2.waitKey(10) & 0xFF
-		#~ 
-#~ 
-#~ img_points = np.array([img_points[0][:4]]).astype(np.float32)
-#~ map_points = np.array([map_points[0][:4]]).astype(np.float32)
-#~ 
-#~ print img_points
-#~ print map_points
-#~ 
-#~ M = cv2.getPerspectiveTransform(img_points,map_points)
-	#~ 
-#~ dst = cv2.warpPerspective(img_show,M,(map_img.shape[1],map_img.shape[0]))
-#~ alpha = 0.5
-#~ cv2.addWeighted(map_show, alpha, dst, 1 - alpha,0, dst)
-#~ cv2.imshow('dst',dst)
-#~ k = cv2.waitKey(-1) & 0xFF

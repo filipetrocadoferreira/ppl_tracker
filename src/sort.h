@@ -1,6 +1,27 @@
 #ifndef SORT_H
 #define SORT_H
 
+/***************************************************************************
+ *                                                                         *
+ *   Copyright (C) %2017% by Filipe Ferreira for Meta.                     *
+ *                                                                         *
+ *   ftrocadoferreira@gmail.com                                            *
+ *                                                                         *
+ * Class : sort_tracker - c++ implementation  of
+ *                        https://github.com/abewley/sort
+ *                       A simple online and realtime tracking algorithm
+ *                       for 2D multiple object tracking in video sequences.
+ *
+ *
+ * Tracker adapted to multi-camera environment. Receives detections and
+ * returns active tracklets.
+ * Every cycle : performs data association with Hungarian Algorithm and
+ * updates individual tracklets with assigned detections.
+ * -New tracklets are added if missed detection is near any entry point.
+ * -Tracklets are set to active after a min number of detections
+ * -Tracklets are deleted if they are close to leaving area
+ ***************************************************************************/
+
 #include<iostream>
 #include<unistd.h>
 
@@ -13,11 +34,6 @@
 
 using namespace std;
 
-struct assignment
-{
-    int tracklet_id;
-    int detection_id;
-};
 
 struct entry_conditions
 {
@@ -30,11 +46,12 @@ class sort_tracker
 {
 public:
     sort_tracker( std::vector<entry_conditions>  e, std::vector<entry_conditions>  l) ;
+    ~sort_tracker();
 
     //method to assign every detection to a tracklet (or false negative)
     void data_association(std::vector<detection>detections,  std::vector<Tracklet>& tracklets);
 
-    //update procedure
+    //update tracker state
     std::vector<Result> update(std::vector<std::vector<detection>> detections);
 
 
@@ -55,6 +72,7 @@ public:
     //our vector of individual tracklets
     std::vector<Tracklet> tracklets;
 
+    //set of active tracklets (output)
     std::vector<Result> active_tracklets;
 
 
@@ -62,33 +80,36 @@ public:
 
 private:
 
+    //detections not assigned to any tracker. From missed detections, new tracklets are created.
     std::vector<detection> missed_detections;
 
 
 
-    //calculate intersection over union of 2 bboxes
+    //Calculates the cost of assignment based on location and appearance(other components were tested)
     float cost(detection d, Tracklet t);
 
 
-   std::vector<entry_conditions> entry_points;
-   std::vector<entry_conditions> leave_points;
+    //entry and leaving points
+    std::vector<entry_conditions> entry_points;
+    std::vector<entry_conditions> leave_points;
 
+    //check if detection is close to entry point
     bool entry(detection d);
+    //check if tracklet is about to leave
     bool leave(Tracklet t);
 
+    //check if detection is a duplicated of active tracklet
     bool check_if_duplicated(cv::Point2f p);
 
+    //calculates the similarity of 2 histograms:return 1 to 0 :1->similar : 0->not similar
     float score_appearance(cv::Mat hist1,cv::Mat hist2);
 
 
 
+    //image of the room for debug purposes.
     cv::Mat room;
 
-
-
-
-
-    //assignments matrix (to not create every cycle)
+    //assignments matrix (to not create every cycle) for Hungarian Algorithm
     std::vector<int> assignments;
     std::vector< std::vector<double> > costMat;
 

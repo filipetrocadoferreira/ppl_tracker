@@ -7,16 +7,19 @@ Camera::Camera()
     frame_id = 0;
 
     if(show_results)
-    {
-        cv::namedWindow("detections"+std::to_string(id));
-        // cv::moveWindow("detections"+std::to_string(id), 100*id, 100*id);
-    }
+        {
+            cv::namedWindow("detections"+std::to_string(id));
+
+        }
 }
 
 Camera::~Camera()
 {
     capture.release();
     cv::destroyAllWindows();
+
+    //reset counter
+    counter = 0;
 }
 
 bool Camera::init(std::string videofile, std::string maskfile, std::string calibfile,fpdw::detector::FPDWDetector * det_,cv::Point2f position)
@@ -45,7 +48,7 @@ bool Camera::process()
     if(image.empty())
         return false;
 
-    m_detections = detect(image,2.3);
+    m_detections = detect(image,2.3); //resize ratio set to 2.3
 
     filter_by_mask(mask,m_detections);
 
@@ -56,29 +59,28 @@ bool Camera::process()
     extract_appearance(m_detections,image);
 
 
-
-
+    //show detections (blue : valide , red : invalid)
     if(show_results)
-    {
-        for(const auto &d : m_detections)
         {
-            cv::rectangle(image, d.bbox, cv::Scalar(255*d.valid, 0, 255*(1-d.valid)), 3);
+            for(const auto &d : m_detections)
+                {
+                    cv::rectangle(image, d.bbox, cv::Scalar(255*d.valid, 0, 255*(1-d.valid)), 3);
 
-            if(d.valid)
-            {
-                cv::putText(image,std::to_string(d.world_point.x)+","+std::to_string(d.world_point.y),d.bbox.tl(),1,3,cv::Scalar(255),2);
+                    if(d.valid)
+                        {
+                            cv::putText(image,std::to_string(d.world_point.x)+","+std::to_string(d.world_point.y),d.bbox.tl(),1,3,cv::Scalar(255),2);
 
-            }
+                        }
 
 
+                }
+            cv::resize(image, image,  cv::Size(), 0.25, 0.25, CV_INTER_AREA);
+
+
+            cv::imshow("detections"+std::to_string(id), image);
+
+            cv::waitKey(1);
         }
-        cv::resize(image, image,  cv::Size(), 0.25, 0.25, CV_INTER_AREA);
-
-
-        cv::imshow("detections"+std::to_string(id), image);
-
-        cv::waitKey(1);
-    }
 
     frame_id++;
 }
@@ -94,15 +96,15 @@ std::vector<detection> Camera::detect(const cv::Mat & img, float factor)
 
     std::vector<detection> detections;
     for(const auto &i : rect)
-    {
-        detection new_detection;
-        new_detection.bbox = cv::Rect(i.x*factor,i.y*factor,i.width*factor,i.height*factor);
-        new_detection.cam_id = id;
+        {
+            detection new_detection;
+            new_detection.bbox = cv::Rect(i.x*factor,i.y*factor,i.width*factor,i.height*factor);
+            new_detection.cam_id = id;
 
-        detections.push_back(new_detection);
+            detections.push_back(new_detection);
 
 
-    }
+        }
 
     return detections;
 
@@ -111,11 +113,11 @@ std::vector<detection> Camera::detect(const cv::Mat & img, float factor)
 void Camera::filter_by_mask(cv::Mat mask, std::vector<detection> &detections)
 {
     for(auto &d : detections)
-    {
-        cv::Point feet = getFeet(d.bbox);
+        {
+            cv::Point feet = getFeet(d.bbox);
 
-        d.valid = insideMask(mask,feet);
-    }
+            d.valid = insideMask(mask,feet);
+        }
 }
 
 void Camera::get_world_coordinates(const cv::Mat &calib, std::vector<detection> &detections)
@@ -124,67 +126,67 @@ void Camera::get_world_coordinates(const cv::Mat &calib, std::vector<detection> 
     std::vector<cv::Point2f> in;
     std::vector<cv::Point2f> out;
     for(auto &d : detections)
-    {
-        cv::Point feet = getFeet(d.bbox);
+        {
+            cv::Point feet = getFeet(d.bbox);
 
-        in.push_back(cv::Point2f((float)feet.x,(float)feet.y));
+            in.push_back(cv::Point2f((float)feet.x,(float)feet.y));
 
 
-    }
+        }
 
     if(in.size()>0)
         cv::perspectiveTransform(in,out,calib);
 
     for(int i = 0 ; i < out.size() ; i++)
-    {
-
-        detections[i].world_point = out[i];
-
-        detections[i].relative_point = out[i]-world_position;
-
-        if(get_ratio)
         {
-            if(detections[i].valid)
-                ratio =  get_statistics(detections[i],ratios) ;
-        }
 
-    }
+            detections[i].world_point = out[i];
+
+            detections[i].relative_point = out[i]-world_position;
+
+            if(get_ratio)
+                {
+                    if(detections[i].valid)
+                        ratio =  get_statistics(detections[i],ratios) ;
+                }
+
+        }
 }
 
 void Camera::get_confidences( std::vector<detection> &detections)
 {
 
     for(auto &d : detections)
-    {
-        float confidence = 1.0;
-
-        float r = d.bbox.height/get_distance_to_Camera(d.relative_point);
-
-        if(ratio>10)
         {
-            float diff = fabs(r-ratio);
+            float confidence = 1.0;
 
-            confidence-=diff/ratio;
+            float r = d.bbox.height/get_distance_to_Camera(d.relative_point);
+
+            if(ratio>10)
+                {
+                    float diff = fabs(r-ratio);
+
+                    confidence-=diff/ratio;
+                }
+
+            d.confidence = confidence;
+
+
         }
-
-        d.confidence = confidence;
-
-
-    }
 }
 
 void Camera::extract_appearance(std::vector<detection> &detections, cv::Mat &img)
 {
     for(auto &d:detections)
-    {
-        if(d.valid)
         {
+            if(d.valid)
+                {
 
-            cv::Mat bbox_img = img(reduce_bbox(d.bbox,0.8,0.5)&cv::Rect(0,0,img.cols,img.rows));
+                    cv::Mat bbox_img = img(reduce_bbox(d.bbox,0.8,0.5)&cv::Rect(0,0,img.cols,img.rows));
 
-            d.hist = getHist(bbox_img).clone();
+                    d.hist = getHist(bbox_img).clone();
+                }
         }
-    }
 }
 
 float Camera::get_distance_to_Camera(cv::Point2f p)
@@ -206,23 +208,23 @@ float Camera::get_statistics( detection d, std::vector<float> &ratios)
     size_t size = ratios.size();
 
     if ( size > 10 )
-    {
-        std::sort(ratios.begin(), ratios.end());
+        {
+            std::sort(ratios.begin(), ratios.end());
 
-        if (size  % 2 == 0)
-        {
-            median = (ratios[size / 2 - 1] + ratios[size / 2]) / 2;
+            if (size  % 2 == 0)
+                {
+                    median = (ratios[size / 2 - 1] + ratios[size / 2]) / 2;
+                }
+            else
+                {
+                    median = ratios[size / 2];
+                }
         }
-        else
-        {
-            median = ratios[size / 2];
-        }
-    }
 
     if (size>1000)
-    {
-        ratios.erase(ratios.begin());
-    }
+        {
+            ratios.erase(ratios.begin());
+        }
     return median;
 
 }
@@ -253,7 +255,8 @@ cv::Mat Camera::getHist(cv::Mat img)
     float range[] = { 0, 256 } ;
     const float* histRange = { range };
 
-    bool uniform = true; bool accumulate = false;
+    bool uniform = true;
+    bool accumulate = false;
 
     cv::Mat b_hist, g_hist, r_hist;
 
@@ -263,9 +266,9 @@ cv::Mat Camera::getHist(cv::Mat img)
     cv::calcHist( &bgr_planes[2], 1, 0, cv::Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate );
 
     /// Normalize the result to [ 0, histImage.rows ]
-      cv::normalize(b_hist, b_hist, 0, 255,cv:: NORM_MINMAX, -1, cv::Mat() );
-      cv::normalize(g_hist, g_hist, 0, 255,cv:: NORM_MINMAX, -1, cv::Mat() );
-      cv::normalize(r_hist, r_hist, 0, 255,cv:: NORM_MINMAX, -1, cv::Mat() );
+    cv::normalize(b_hist, b_hist, 0, 255,cv:: NORM_MINMAX, -1, cv::Mat() );
+    cv::normalize(g_hist, g_hist, 0, 255,cv:: NORM_MINMAX, -1, cv::Mat() );
+    cv::normalize(r_hist, r_hist, 0, 255,cv:: NORM_MINMAX, -1, cv::Mat() );
 
 
 
@@ -303,22 +306,22 @@ void Camera::getCalibfile(std::string calibfile)
     std::fstream myfile(calibfile, std::ios_base::in);
 
     float a;
-    char dummy;
+    char dummy; //receives the ','
     std::vector<float> calibvector;
     for(int i = 0; i<9; i++)
-    {
-        myfile>>a;
-        myfile>>dummy;
-        calibvector.push_back(a);
-        std::cout << "reading: " << a << " vector size: " << calibvector.size() << "/9 " << std::endl;
-    }
+        {
+            myfile>>a;
+            myfile>>dummy;
+            calibvector.push_back(a);
+
+        }
 
 
     myfile.close();
 
     calibMat = cv::Mat( 3,3, CV_32FC1,calibvector.data()).clone();
 
-    std::cout << "Calibration Matrix Initalized:" << calibMat << std::endl;
+    std::cout << "Calibration Matrix Initialized:" << calibMat << std::endl;
 
 
 
