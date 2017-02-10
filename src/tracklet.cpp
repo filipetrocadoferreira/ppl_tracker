@@ -59,12 +59,6 @@ void Tracklet::update()
 
     if(set_detections.size()>0)
         {
-            std::cout << " our set of detections: " << std::endl;
-            for(auto & d : set_detections)
-                {
-                    std::cout << " Cam_id" << d.cam_id << " point " << d.world_point << std::endl;
-                }
-
 
 
 

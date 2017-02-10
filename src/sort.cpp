@@ -120,7 +120,7 @@ std::vector<Result > sort_tracker::update(std::vector<std::vector<detection> > d
     for(int i = 0 ; i < tracklets.size() ; i++)
         {
 
-            std::cout << " updating tracklet " << i << std::endl;
+
             tracklets[i].update();
 
         }
