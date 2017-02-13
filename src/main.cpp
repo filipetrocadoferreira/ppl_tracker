@@ -46,7 +46,7 @@ int main(int argc, char** argv )
 
     //init our detector
     fpdw::detector::FPDWDetector *ptr_detector;
-    ptr_detector = new fpdw::detector::FPDWDetector("../detector/inria_detector.xml", 15);
+    ptr_detector = new fpdw::detector::FPDWDetector("../detector/inria_detector.xml", 25);
 
     for(auto t : tests)
         {

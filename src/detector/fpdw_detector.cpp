@@ -206,7 +206,7 @@ void FPDWDetector::chnsPyramid(const fpdw::structs::Pyramid &_pyr)
         chnsCompute(scaledImg, _pyr.pChns, isr);
     }
 
-    #pragma omp parallel for num_threads( omp_get_num_procs() * omp_get_num_threads() ) private(internal_data, iA, iR, sz, scale_iA_iR, ratio, image_data)
+#pragma omp parallel for num_threads( omp_get_num_procs() * omp_get_num_threads() ) private(internal_data, iA, iR, sz, scale_iA_iR, ratio, image_data)
     for(uint i = 0; i < isA.size(); ++i)
     {
         iA = isA.at(i) - 1;
@@ -221,13 +221,13 @@ void FPDWDetector::chnsPyramid(const fpdw::structs::Pyramid &_pyr)
             utils::ImResample<float>::resample(m_data.at(iR).at(j), sz, ratio, m_data.at(iR).at(j).channels(), image_data);
             internal_data.push_back(image_data.clone());
         }
-        #pragma omp critical
+#pragma omp critical
         {
             m_data.at(iA) = internal_data;
         }
     }
 
-    #pragma omp parallel for num_threads( omp_get_num_procs() * omp_get_num_threads() )
+#pragma omp parallel for num_threads( omp_get_num_procs() * omp_get_num_threads() )
     for(uint i = 0; i < nScales; ++i)
     {
         for(uint j = 0; j < nTypes; ++j)
@@ -236,7 +236,7 @@ void FPDWDetector::chnsPyramid(const fpdw::structs::Pyramid &_pyr)
         }
     }
 
-    #pragma omp parallel for num_threads( omp_get_num_procs() * omp_get_num_threads() )
+#pragma omp parallel for num_threads( omp_get_num_procs() * omp_get_num_threads() )
     for(uint i = 0; i < nScales; ++i)
     {
         for(uint j = 0; j < nTypes; ++j)
@@ -375,7 +375,7 @@ void FPDWDetector::init()
     }
     v_j.push_back(nScales);
 
-    #pragma omp parallel for num_threads( omp_get_num_procs() * omp_get_num_threads() )
+#pragma omp parallel for num_threads( omp_get_num_procs() * omp_get_num_threads() )
     for(uint i = 0; i < isR.size(); ++i)
     {
         for(uint j = v_j.at(i); j < v_j.at(i + 1); ++j)
@@ -422,7 +422,7 @@ cv::Mat FPDWDetector::detect(const int &_i)
     // apply classifier to each patch
     std::vector<int> rs, cs;
     std::vector<float> hs1;
-    #pragma omp parallel for num_threads( omp_get_num_procs() * omp_get_num_threads() ) shared(rs, cs, hs1)
+#pragma omp parallel for num_threads( omp_get_num_procs() * omp_get_num_threads() ) shared(rs, cs, hs1)
     for( int c=0; c<width1; c++ )
     {
         for( int r=0; r<height1; r++ )
@@ -481,7 +481,7 @@ cv::Mat FPDWDetector::detect(const int &_i)
             }
             if(h>cascThr)
             {
-                #pragma omp critical
+#pragma omp critical
                 {
                     cs.push_back(c);
                     rs.push_back(r);
@@ -495,7 +495,7 @@ cv::Mat FPDWDetector::detect(const int &_i)
 
     cv::Mat_<float> output(cv::Size(5, m));
 
-    #pragma omp parallel for num_threads( omp_get_num_procs() * omp_get_num_threads() )
+#pragma omp parallel for num_threads( omp_get_num_procs() * omp_get_num_threads() )
     for(uint i = 0; i < m; ++i)
     {
         output.at<float>(i, 0) = ((cs[i]*stride) + float(m_shift[1])) / float(m_scaleHw.at(_i).y);
@@ -525,15 +525,20 @@ void FPDWDetector::getScale()
 {
     nScales = std::floor(m_nPerOct *
                          (m_nOctUp + std::log2( std::min(m_img_size.width / float(m_minDs.width),
-                                 m_img_size.height / float(m_minDs.height)))) + 1 );
+                                                         m_img_size.height / float(m_minDs.height)))) + 1 );
 
     std::vector<float> scales;
 
     for(uint i = 0; i  < nScales; ++i)
     {
-        scales.push_back(std::pow(2, -float(i)/float(m_nPerOct) + m_nOctUp));
+        float new_scale = std::pow(2, -float(i)/float(m_nPerOct) + m_nOctUp);
+        if(new_scale>0.5)
+        {
+            scales.push_back(std::pow(2, -float(i)/float(m_nPerOct) + m_nOctUp));
+        }
     }
 
+    nScales = scales.size();
 
     int d_0, d_1;
     if(m_img_size.height < m_img_size.width)

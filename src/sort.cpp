@@ -7,7 +7,7 @@ sort_tracker::sort_tracker(std::vector<entry_conditions>  e, std::vector<entry_c
     min_detections = 3;
     distance_to_entry = 0.5;
     distance_to_leave = 0.95;
-    distance_to_begin = 2;
+    distance_to_begin = 1;
     min_cost = 0.75;
 
     frame_count = 0;
