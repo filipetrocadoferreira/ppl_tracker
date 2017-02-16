@@ -75,6 +75,12 @@ private:
     //our detections
     std::vector<detection> m_detections;
 
+    //room limits
+    int max_x;
+    int max_y;
+    int min_x;
+    int min_y;
+
 
     //debug:
     bool show_results = true;
@@ -90,6 +96,9 @@ private:
 
     //Filter detections based on their location in the image. If their feet are not in the floor, detections turns invalid.
     void filter_by_mask(cv::Mat mask,std::vector<detection> &detections);
+
+    //Filter detections based on world location
+    void filter_by_local(std::vector<detection>&detections);
 
     //Transform location of detection to world coordinates. Also calculates location of the person relative to camera (useful in tracking)
     void get_world_coordinates(const cv::Mat &calib, std::vector<detection> &detections);

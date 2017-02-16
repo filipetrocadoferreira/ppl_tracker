@@ -45,7 +45,7 @@ struct entry_conditions
 class sort_tracker
 {
 public:
-    sort_tracker( std::vector<entry_conditions>  e, std::vector<entry_conditions>  l) ;
+    sort_tracker() ;
     ~sort_tracker();
 
     //method to assign every detection to a tracklet (or false negative)
@@ -69,6 +69,9 @@ public:
 
     int frame_count;
 
+    //this little trick is for video 2 when we have a person in the middle of the room
+    bool first_detection = true;
+
     //our vector of individual tracklets
     std::vector<Tracklet> tracklets;
 
@@ -89,14 +92,18 @@ private:
     float cost(detection d, Tracklet t);
 
 
-    //entry and leaving points
-    std::vector<entry_conditions> entry_points;
-    std::vector<entry_conditions> leave_points;
+
 
     //check if detection is close to entry point
     bool entry(detection d);
     //check if tracklet is about to leave
     bool leave(Tracklet t);
+
+    //check closest distance to a wall
+    float closest_wall(cv::Point2f p);
+
+    //distance to wall
+    float distance_to_wall(cv::Point2f w1, cv::Point2f w2, cv::Point2f p);
 
     //check if detection is a duplicated of active tracklet
     bool check_if_duplicated(cv::Point2f p);
@@ -104,6 +111,9 @@ private:
     //calculates the similarity of 2 histograms:return 1 to 0 :1->similar : 0->not similar
     float score_appearance(cv::Mat hist1,cv::Mat hist2);
 
+
+    //wall points:represent the limits of our room (tracking area)
+    std::vector<cv::Point2f> wall_points;
 
 
     //image of the room for debug purposes.

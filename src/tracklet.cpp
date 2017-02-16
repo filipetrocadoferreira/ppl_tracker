@@ -82,6 +82,8 @@ void Tracklet::update()
 
         }
 
+    trajectory.push_back(get_state());
+
 }
 
 void Tracklet::predict()

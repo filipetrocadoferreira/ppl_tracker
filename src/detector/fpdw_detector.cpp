@@ -134,6 +134,7 @@ void FPDWDetector::process(const cv::Mat &_img)
     }
     m_data.clear();
     m_bboxes.clear();
+    m_confidences.clear();
     m_data.resize(nScales);
 
     //BUILD PYRAMID
@@ -163,6 +164,7 @@ void FPDWDetector::process(const cv::Mat &_img)
         if(conf[i] > m_confidence)
         {
             m_bboxes.push_back(bbox[i]);
+            m_confidences.push_back(conf[i]);
         }
     }
 }

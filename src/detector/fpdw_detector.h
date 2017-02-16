@@ -59,6 +59,11 @@ namespace fpdw
                 {
                     return m_confidence;
                 }
+
+                std::vector<float> getConfidences() const
+                {
+                    return m_confidences;
+                }
             private:
                 Classifier m_cls;
                 structs::Cls m_clf;
@@ -85,6 +90,7 @@ namespace fpdw
                 bool init_detector;
                 float m_confidence;
                 std::vector<cv::Rect> m_bboxes;
+                std::vector<float>    m_confidences;
                 //CLASSIFIER PARAMETERS
                 int modelHt;
                 int modelWd;

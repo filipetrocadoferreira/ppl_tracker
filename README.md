@@ -6,6 +6,14 @@ The code performs:
 * Data Association using Hungarian Algorithm - https://github.com/mcximing/hungarian-algorithm-cpp
 * Tracking in world coordinates using a version of SORT tracker - https://github.com/abewley/sort 
 
+
+##v0.2
+* new detector parameters (faster and better recall)
+* no more "entry and leave points". Now constraints to generate/delete tracklet are more general (room dimensions)
+* draw of the trajectories
+
+
+
 ##Requirements
 * OpenCV
 * OpenMP

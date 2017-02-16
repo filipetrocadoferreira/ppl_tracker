@@ -7,7 +7,7 @@
 
 using namespace cv;
 
-void init_test( std::vector<Camera> &camNetwork,std::vector<entry_conditions> & entry, std::vector<entry_conditions> & leave, fpdw::detector::FPDWDetector *ptr_detector, int test_number);
+void init_test( std::vector<Camera> &camNetwork, fpdw::detector::FPDWDetector *ptr_detector, int test_number);
 
 int main(int argc, char** argv )
 {
@@ -46,19 +46,17 @@ int main(int argc, char** argv )
 
     //init our detector
     fpdw::detector::FPDWDetector *ptr_detector;
-    ptr_detector = new fpdw::detector::FPDWDetector("../detector/inria_detector.xml", 25);
+    ptr_detector = new fpdw::detector::FPDWDetector("../detector/inria_detector.xml", 15);
 
     for(auto t : tests)
         {
             std::vector<Camera> camNetwork;
 
-            std::vector<entry_conditions> entry;
-            std::vector<entry_conditions> leave;
 
 
-            init_test(camNetwork,entry,leave,ptr_detector,t);
+            init_test(camNetwork,ptr_detector,t);
 
-            sort_tracker tracker(entry,leave);
+            sort_tracker tracker;
 
             //create logger file
 
@@ -117,7 +115,7 @@ int main(int argc, char** argv )
     return 0;
 }
 
-void init_test(std::vector<Camera> &camNetwork, std::vector<entry_conditions> &entry, std::vector<entry_conditions> &leave, fpdw::detector::FPDWDetector *ptr_detector, int test_number)
+void init_test(std::vector<Camera> &camNetwork, fpdw::detector::FPDWDetector *ptr_detector, int test_number)
 {
     //strings for camera 0
     std::string maskfile0     =  "../calibration/0.bmp";
@@ -159,12 +157,6 @@ void init_test(std::vector<Camera> &camNetwork, std::vector<entry_conditions> &e
 
 
 
-            c1.cam_id = 0;
-            c1.point  =  cv::Point2f (5,2.25);
-            c1.dist   = 0.9;
-
-            entry.push_back(c1);
-
 
 
             break;
@@ -179,11 +171,7 @@ void init_test(std::vector<Camera> &camNetwork, std::vector<entry_conditions> &e
 
             camera1.init(videofile1,maskfile1,calibfile1,ptr_detector,cv::Point2f(8,0));
             camNetwork.push_back(camera1);
-            c1.cam_id = 0;
-            c1.point  =  cv::Point2f (5,2.25);
-            c1.dist   = 0.9;
 
-            entry.push_back(c1);
 
             break;
 
@@ -211,17 +199,6 @@ void init_test(std::vector<Camera> &camNetwork, std::vector<entry_conditions> &e
             camNetwork.push_back(camera3);
 
 
-            c1.cam_id = 1;
-            c1.point  =  cv::Point2f (4,4.25);
-            c1.dist   = 0.9;
-
-            c2.cam_id =  2;
-            c2.point  =  cv::Point2f (1,4.25);
-            c2.dist   =  0.5;
-
-            entry.push_back(c1);
-            leave.push_back(c2);
-
             break;
 
         case 4:
@@ -246,21 +223,6 @@ void init_test(std::vector<Camera> &camNetwork, std::vector<entry_conditions> &e
             camera3.init(videofile3,maskfile3,calibfile3,ptr_detector,cv::Point2f(0,4.25));
             camNetwork.push_back(camera3);
 
-
-            c1.cam_id = 1;
-            c1.point  =  cv::Point2f (4,4.25);
-            c1.dist   = 0.9;
-
-
-            c2.cam_id =  2;
-            c2.point  =  cv::Point2f (1,3.25);
-            c2.dist   =  0.5;
-
-            entry.push_back(c1);
-            entry.push_back(c2);
-
-            leave.push_back(c2);
-            leave.push_back(c1);
 
 
             break;
@@ -289,16 +251,7 @@ void init_test(std::vector<Camera> &camNetwork, std::vector<entry_conditions> &e
             camNetwork.push_back(camera3);
 
 
-            c1.cam_id = 1;
-            c1.point  =  cv::Point2f (4,4.25);
-            c1.dist   = 0.9;
 
-            c2.cam_id =  2;
-            c2.point  =  cv::Point2f (1,3.25);
-            c2.dist   =  0.5;
-
-            entry.push_back(c1);
-            leave.push_back(c2);
 
 
             break;

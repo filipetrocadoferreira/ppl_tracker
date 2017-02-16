@@ -11,6 +11,11 @@ Camera::Camera()
             cv::namedWindow("detections"+std::to_string(id));
 
         }
+
+    max_x = 9.0;
+    max_y = 4.0;
+    min_x = 0.5;
+    min_y = 0.5;
 }
 
 Camera::~Camera()
@@ -50,9 +55,11 @@ bool Camera::process()
 
     m_detections = detect(image,2.3); //resize ratio set to 2.3
 
-    filter_by_mask(mask,m_detections);
+
 
     get_world_coordinates(calibMat,m_detections);
+
+    filter_by_local(m_detections);
 
     get_confidences(m_detections);
 
@@ -92,14 +99,17 @@ std::vector<detection> Camera::detect(const cv::Mat & img, float factor)
 
     detector->process(image);
     std::vector<cv::Rect >rect = detector->getBBoxes(); //our detections
+    auto confidences = detector->getConfidences();
 
 
     std::vector<detection> detections;
-    for(const auto &i : rect)
+
+    for(int i = 0 ; i < rect.size() ; i++)
         {
             detection new_detection;
-            new_detection.bbox = cv::Rect(i.x*factor,i.y*factor,i.width*factor,i.height*factor);
+            new_detection.bbox = cv::Rect(rect[i].x*factor,rect[i].y*factor,rect[i].width*factor,rect[i].height*factor);
             new_detection.cam_id = id;
+            new_detection.confidence = confidences[i];
 
             detections.push_back(new_detection);
 
@@ -117,7 +127,25 @@ void Camera::filter_by_mask(cv::Mat mask, std::vector<detection> &detections)
             cv::Point feet = getFeet(d.bbox);
 
             d.valid = insideMask(mask,feet);
-        }
+    }
+}
+
+void Camera::filter_by_local(std::vector<detection> &detections)
+{
+    for(auto &d : detections)
+        {
+
+
+            bool valid = true;
+
+            if(d.world_point.x<min_x
+                    || d.world_point.y<min_y
+                    || d.world_point.x>max_x
+                    || d.world_point.y>max_y)
+                valid = false;
+            d.valid = valid;
+    }
+
 }
 
 void Camera::get_world_coordinates(const cv::Mat &calib, std::vector<detection> &detections)
@@ -156,23 +184,6 @@ void Camera::get_world_coordinates(const cv::Mat &calib, std::vector<detection> 
 void Camera::get_confidences( std::vector<detection> &detections)
 {
 
-    for(auto &d : detections)
-        {
-            float confidence = 1.0;
-
-            float r = d.bbox.height/get_distance_to_Camera(d.relative_point);
-
-            if(ratio>10)
-                {
-                    float diff = fabs(r-ratio);
-
-                    confidence-=diff/ratio;
-                }
-
-            d.confidence = confidence;
-
-
-        }
 }
 
 void Camera::extract_appearance(std::vector<detection> &detections, cv::Mat &img)

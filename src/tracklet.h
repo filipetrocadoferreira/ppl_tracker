@@ -73,6 +73,8 @@ public:
     float uncertainty;
     cv::Mat hist;
 
+    std::vector <cv::Point2f> trajectory;
+
     bool active;
 
     static void reset_counter();
