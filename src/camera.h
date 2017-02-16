@@ -36,7 +36,7 @@ public:
     ~Camera();
 
     //Receive all the need information here:
-    bool init(std::string videofile,std::string maskfile,std::string calibfile,fpdw::detector::FPDWDetector * det_,cv::Point2f position);
+    bool init(std::string videofile,std::string calibfile,fpdw::detector::FPDWDetector * det_,cv::Point2f position);
 
     //Process next frame. Returns false when videofile is empty.
     bool process();
@@ -68,8 +68,8 @@ private:
     float ratio = 0;
 
 
-    //geometric constraints: mask of the floor and perspective transform image->world
-    cv::Mat mask;
+    //geometric constraints: perspective transform image->world
+
     cv::Mat calibMat;
 
     //our detections
@@ -94,8 +94,6 @@ private:
     //runs the detector on a resized image - Returns the detections in the original size
     std::vector<detection> detect(const cv::Mat &,float factor);
 
-    //Filter detections based on their location in the image. If their feet are not in the floor, detections turns invalid.
-    void filter_by_mask(cv::Mat mask,std::vector<detection> &detections);
 
     //Filter detections based on world location
     void filter_by_local(std::vector<detection>&detections);
@@ -121,7 +119,7 @@ private:
     //utils:
     cv::Point getFeet(cv::Rect);
 
-    bool insideMask(const cv::Mat &mask,cv::Point);
+
 
     cv::Mat getHist(cv::Mat img);
 
@@ -129,7 +127,6 @@ private:
 
 
     //Read external files:
-    void getMaskfile(std::string maskfile);
     void getCalibfile(std::string calibfile);
 
 

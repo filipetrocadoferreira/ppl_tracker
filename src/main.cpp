@@ -152,7 +152,7 @@ void init_test(std::vector<Camera> &camNetwork, fpdw::detector::FPDWDetector *pt
 
             videofile0    =  "../Files/Triangle/1-actor/1-camera/pos_tri_1p_C10.mp4";
 
-            camera0.init(videofile0,maskfile0,calibfile0,ptr_detector,cv::Point2f(8,4.25));
+            camera0.init(videofile0,calibfile0,ptr_detector,cv::Point2f(8,4.25));
             camNetwork.push_back(camera0);
 
 
@@ -166,10 +166,10 @@ void init_test(std::vector<Camera> &camNetwork, fpdw::detector::FPDWDetector *pt
             videofile0    =  "../Files/Square/1-actor/2-cameras/pos_sqr_1p_C10.mp4";
             videofile1    =  "../Files/Square/1-actor/2-cameras/pos_sqr_1p_C11.mp4";
 
-            camera0.init(videofile0,maskfile0,calibfile0,ptr_detector,cv::Point2f(8,4.25));
+            camera0.init(videofile0,calibfile0,ptr_detector,cv::Point2f(8,4.25));
             camNetwork.push_back(camera0);
 
-            camera1.init(videofile1,maskfile1,calibfile1,ptr_detector,cv::Point2f(8,0));
+            camera1.init(videofile1,calibfile1,ptr_detector,cv::Point2f(8,0));
             camNetwork.push_back(camera1);
 
 
@@ -183,19 +183,19 @@ void init_test(std::vector<Camera> &camNetwork, fpdw::detector::FPDWDetector *pt
             videofile3    =  "../Files/Arc/1-actor/arc_1p_C13.mp4";
 
 
-            camera0.init(videofile0,maskfile0,calibfile0,ptr_detector,cv::Point2f(8,4.25));
+            camera0.init(videofile0,calibfile0,ptr_detector,cv::Point2f(8,4.25));
             camNetwork.push_back(camera0);
 
 
-            camera1.init(videofile1,maskfile1,calibfile1,ptr_detector,cv::Point2f(8,0));
+            camera1.init(videofile1,calibfile1,ptr_detector,cv::Point2f(8,0));
             camNetwork.push_back(camera1);
 
 
-            camera2.init(videofile2,maskfile2,calibfile2,ptr_detector,cv::Point2f(0,0));
+            camera2.init(videofile2,calibfile2,ptr_detector,cv::Point2f(0,0));
             camNetwork.push_back(camera2);
 
 
-            camera3.init(videofile3,maskfile3,calibfile3,ptr_detector,cv::Point2f(0,4.25));
+            camera3.init(videofile3,calibfile3,ptr_detector,cv::Point2f(0,4.25));
             camNetwork.push_back(camera3);
 
 
@@ -209,18 +209,18 @@ void init_test(std::vector<Camera> &camNetwork, fpdw::detector::FPDWDetector *pt
             videofile3    =  "../Files/Arc/2-actor/distinct-colors/arc_2p_dc_co_C13.mp4";
 
 
-            camera0.init(videofile0,maskfile0,calibfile0,ptr_detector,cv::Point2f(8,4.25));
+            camera0.init(videofile0,calibfile0,ptr_detector,cv::Point2f(8,4.25));
             camNetwork.push_back(camera0);
 
-            camera1.init(videofile1,maskfile1,calibfile1,ptr_detector,cv::Point2f(8,0));
+            camera1.init(videofile1,calibfile1,ptr_detector,cv::Point2f(8,0));
             camNetwork.push_back(camera1);
 
 
-            camera2.init(videofile2,maskfile2,calibfile2,ptr_detector,cv::Point2f(0,0));
+            camera2.init(videofile2,calibfile2,ptr_detector,cv::Point2f(0,0));
             camNetwork.push_back(camera2);
 
 
-            camera3.init(videofile3,maskfile3,calibfile3,ptr_detector,cv::Point2f(0,4.25));
+            camera3.init(videofile3,calibfile3,ptr_detector,cv::Point2f(0,4.25));
             camNetwork.push_back(camera3);
 
 
@@ -235,19 +235,19 @@ void init_test(std::vector<Camera> &camNetwork, fpdw::detector::FPDWDetector *pt
             videofile3    =  "../Files/Arc/5-actor/equal-colors/arc_mp_ec_C13.mp4";
 
 
-            camera0.init(videofile0,maskfile0,calibfile0,ptr_detector,cv::Point2f(8,4.25));
+            camera0.init(videofile0,calibfile0,ptr_detector,cv::Point2f(8,4.25));
             camNetwork.push_back(camera0);
 
 
-            camera1.init(videofile1,maskfile1,calibfile1,ptr_detector,cv::Point2f(8,0));
+            camera1.init(videofile1,calibfile1,ptr_detector,cv::Point2f(8,0));
             camNetwork.push_back(camera1);
 
 
-            camera2.init(videofile2,maskfile2,calibfile2,ptr_detector,cv::Point2f(0,0));
+            camera2.init(videofile2,calibfile2,ptr_detector,cv::Point2f(0,0));
             camNetwork.push_back(camera2);
 
 
-            camera3.init(videofile3,maskfile3,calibfile3,ptr_detector,cv::Point2f(0,4.25));
+            camera3.init(videofile3,calibfile3,ptr_detector,cv::Point2f(0,4.25));
             camNetwork.push_back(camera3);
 
 

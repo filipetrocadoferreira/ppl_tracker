@@ -27,9 +27,9 @@ Camera::~Camera()
     counter = 0;
 }
 
-bool Camera::init(std::string videofile, std::string maskfile, std::string calibfile,fpdw::detector::FPDWDetector * det_,cv::Point2f position)
+bool Camera::init(std::string videofile, std::string calibfile,fpdw::detector::FPDWDetector * det_,cv::Point2f position)
 {
-    getMaskfile(maskfile);
+
     getCalibfile(calibfile);
 
     capture.open(videofile);
@@ -120,15 +120,7 @@ std::vector<detection> Camera::detect(const cv::Mat & img, float factor)
 
 }
 
-void Camera::filter_by_mask(cv::Mat mask, std::vector<detection> &detections)
-{
-    for(auto &d : detections)
-        {
-            cv::Point feet = getFeet(d.bbox);
 
-            d.valid = insideMask(mask,feet);
-    }
-}
 
 void Camera::filter_by_local(std::vector<detection> &detections)
 {
@@ -245,13 +237,6 @@ cv::Point Camera::getFeet(cv::Rect r)
     return cv::Point(r.x+r.width/2,r.y+r.height);
 }
 
-bool Camera::insideMask(const cv::Mat &mask,cv::Point p)
-{
-    int pixel = (int)(mask.at<uchar>(p.y,p.x));
-
-
-    return pixel > 0;
-}
 
 cv::Mat Camera::getHist(cv::Mat img)
 {
@@ -307,10 +292,7 @@ cv::Rect Camera::reduce_bbox(cv::Rect r, float h_r, float v_r)
     return cv::Rect(cx-w/2,cy-h/2,w,h);
 }
 
-void Camera::getMaskfile(std::string maskfile)
-{
-    mask = cv::imread(maskfile,0);
-}
+
 
 void Camera::getCalibfile(std::string calibfile)
 {
