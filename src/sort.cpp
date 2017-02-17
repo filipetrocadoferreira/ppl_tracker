@@ -287,9 +287,9 @@ float sort_tracker::distance_to_wall(cv::Point2f w1, cv::Point2f w2, cv::Point2f
 {
     float d1 = (float)fabs((w2-w1).cross(w1-p));
 
-    float  d2 = (float)cv::norm(w2-w1);
+    float d2 = (float)cv::norm(w2-w1);
 
-    float d = d1/d2;
+    float d  = d1/d2;
 
     return d;
 }
