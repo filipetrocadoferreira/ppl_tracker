@@ -11,7 +11,7 @@ The code performs:
 
 * new detector parameters (faster and better recall)
 * no more "entry and leave points" or mask image to filter detections. Now constraints to generate/delete tracklet are more general (room dimensions)
-* Use of confidence of detection to start tracklet
+* Use of detection's confidence to start tracklet
 * draw of the trajectories
 
 
